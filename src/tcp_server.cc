@@ -1,5 +1,5 @@
-#include "tcp_server.hpp"
-#include "error_check.hpp"
+#include "../include/tcp_server.hpp"
+#include "../include/error_check.hpp"
 #include <sstream>
 #include <string.h>
 

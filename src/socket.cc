@@ -1,5 +1,5 @@
-#include "socket.hpp"
-#include "error_check.hpp"
+#include "../include/socket.hpp"
+#include "../include/error_check.hpp"
 
 #include <sys/types.h>
 #include <sys/socket.h>
