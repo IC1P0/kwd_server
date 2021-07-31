@@ -1,2 +1,8 @@
 # kwd_server
-该项目创建了一个在Linux上运行的Reactor模型单多模式的服务器，功能是根据用户输入信息返回查询结果
+This project create a server running on Linux.
+
+The basci model of this server is a Reactor model, which includes one Reactor
+and multiple work threads.
+
+Working threads will process messages come from clients and Reactor will return 
+possible results back to clients.
