@@ -1,0 +1,205 @@
+#include "../include/SearchModule.hpp"
+#include "../include/CreateDict.hpp"
+#include "../include/ReferenceCreator.hpp"
+#include <queue>
+#include <fstream>
+#include <sstream>
+#include <algorithm>
+
+namespace OB
+{
+using std::min;
+using std::ifstream;
+using std::istringstream;
+using std::priority_queue;
+
+SearchModule::SearchModule(unsigned int search_word_list_size,
+                           const string &text_to_handle_path,
+                           const string &dict_path,
+                           const string &stop_words_list_path,
+                           const string &ref_path)
+    : search_word_list_size_(search_word_list_size),
+      text_to_handle_path_(text_to_handle_path),
+      dict_path_(dict_path),
+      stop_words_list_path_(stop_words_list_path),
+      ref_path_(ref_path),
+      dict_creator_(nullptr),
+      ref_creator_(nullptr) {
+        Init();
+      }
+
+SearchModule::~SearchModule() {
+  delete dict_creator_;
+  delete ref_creator_;
+  dict_creator_ = nullptr;
+  ref_creator_ = nullptr;
+}
+
+bool operator>(const SearchModule::SearchResult &lhs, const SearchModule::SearchResult &rhs) {
+  return (lhs.min_edit_dis*4 + (10000 - lhs.occur_times*0.001))
+         > (rhs.min_edit_dis*4 + (10000 - rhs.occur_times*0.001));
+  /* return lhs.min_edit_dis > rhs.min_edit_dis; */
+}
+
+SearchModule *SearchModule::GetInstance() {
+  if (!instance_ptr_) {
+    instance_ptr_ = new SearchModule();
+  }
+  return instance_ptr_;
+}
+
+void SearchModule::Destroy() {
+  if (instance_ptr_) {
+    delete instance_ptr_;
+    instance_ptr_ = nullptr;
+  }
+}
+
+SearchRetPair SearchModule::SearchWord(const string &word) {
+  if (IsEnglish(word)) {
+    printf("Seaching English word\n");
+    string word_lower(word);
+    for (auto &i : word_lower) {
+      if (::isupper(i)) i += 32;
+    }
+    return HandleENG(word_lower);
+  } else {
+    printf("Seaching Chinese word\n");
+    return HandleCH(word);
+  }
+}
+
+void SearchModule::Init() {
+  ReadConf();
+  if (ConfFound("SEARCH_WORD_LIST_SIZE")) search_word_list_size_ = 
+    atoi(conf_["SEARCH_WORD_LIST_SIZE"].c_str());
+  if (ConfFound("TEXT_TO_HANDLE")) text_to_handle_path_ = conf_["TEXT_TO_HANDLE"];
+  if (ConfFound("DICT")) text_to_handle_path_ = conf_["DICT"];
+  if (ConfFound("STOP_WORDS")) text_to_handle_path_ = conf_["STOP_WORDS"];
+  if (ConfFound("REF")) text_to_handle_path_ = conf_["REF"];
+  dict_creator_ = new DictCreator(text_to_handle_path_,
+                                  dict_path_,
+                                  stop_words_list_path_);
+  ref_creator_ = new RefFileCreator(dict_path_, ref_path_);
+  dict_creator_->CreateDict();
+  ref_creator_->Init();
+}
+
+void SearchModule::ReadConf() {
+  ifstream ifs("../conf");
+  if (!ifs.good()) {
+    perror("conf_ifs: ");
+  }
+  string line;
+  while (getline(ifs, line)) {
+    istringstream iss(line);
+    string conf_option;
+    string path;
+    iss >> conf_option >> path;
+    conf_[conf_option] = path;
+  }
+  ifs.close();
+}
+
+SearchRetPair SearchModule::HandleENG(const string &word) {
+  const vector<pair<string, int>> &dict_vec = ref_creator_->get_dict();
+  const unordered_map<string, set<int>> &ref_umap = ref_creator_->get_ref();
+  priority_queue<SearchResult,
+    vector<SearchResult>,
+    std::greater<SearchResult>> ret_que;
+  set<int> word_dict_pos;
+  for (auto i : word) {
+    char i_tmp[2] = {i, '\0'};
+    auto it = ref_umap.find(string(i_tmp));
+    if (it == ref_umap.end()) continue;
+    for (auto i : it->second) {
+      word_dict_pos.insert(i);
+    }
+  }
+  for (auto i : word_dict_pos) {
+    string dict_word = dict_vec[i].first;
+    int dict_word_cnt = dict_vec[i].second;
+    SearchResult ret_tmp;
+    ret_tmp.min_edit_dis = MinEdit(word, dict_word);
+    ret_tmp.occur_times = dict_word_cnt;
+    ret_tmp.word = dict_word;
+    ret_que.push(ret_tmp);
+  }
+  size_t size = min(search_word_list_size_, ret_que.size());
+  vector<string> search_word_list(size);
+  for (size_t pos = 0; pos < size; ++pos) {
+    search_word_list[pos] = ret_que.top().word;
+    ret_que.pop();
+  }
+  return pair<string, vector<string>>(word, search_word_list);
+}
+
+SearchRetPair SearchModule::HandleCH(const string &word) {
+  vector<pair<string, int>> &dict_vec(ref_creator_->get_dict());
+  unordered_map<string, set<int>> &ref_umap(ref_creator_->get_ref());
+  priority_queue<SearchResult,
+    vector<SearchResult>,
+    std::greater<SearchResult>> ret_que;
+  size_t pos = 0;
+  set<int> word_dict_pos;
+  while (pos < word.size()-1) {
+    char char_tmp[3] = {word[pos], word[++pos], word[++pos]};
+    ++pos;
+    auto it = ref_umap.find(string(char_tmp));
+    if (it == ref_umap.end()) continue;
+    for (const int &i : it->second) {
+      word_dict_pos.insert(i);
+    }
+  }
+  for (auto i : word_dict_pos) {
+    string dict_word = dict_vec[i].first;
+    int dict_word_cnt = dict_vec[i].second;
+    SearchResult ret_tmp;
+    ret_tmp.min_edit_dis = MinEdit(word, dict_word);
+    ret_tmp.occur_times = dict_word_cnt;
+    ret_tmp.word = dict_word;
+    ret_que.push(ret_tmp);
+  }
+  size_t size = min(search_word_list_size_, ret_que.size());
+  vector<string> search_word_list(size);
+  for (size_t pos = 0; pos < size; ++pos) {
+    search_word_list[pos] = ret_que.top().word;
+    ret_que.pop();
+  }
+  return pair<string, vector<string>>(word, search_word_list);
+}
+
+int SearchModule::MinEdit(const string &word1, const string &word2) {
+  int max1 = word1.size();
+  int max2 = word2.size();
+
+  int **ptr = new int*[max1 + 1];
+  for (int i = 0; i < max1 + 1 ;i++) {
+    ptr[i] = new int[max2 + 1];
+  }
+
+  for (int i = 0 ;i < max1 + 1 ;i++) {
+    ptr[i][0] = i;
+  }
+
+  for (int i = 0 ;i < max2 + 1;i++) {
+    ptr[0][i] = i;
+  }
+
+  for (int i = 1 ;i < max1 + 1 ;i++) {
+    for (int j = 1 ;j< max2 + 1; j++) {
+      ptr[i][j] = Min(ptr[i-1][j] + 1,
+                     ptr[i][j-1] + 1,
+                     ptr[i-1][j-1] + (word1[i-1] == word2[j-1] ? 0 : 1));
+    }
+  }
+  int dis = ptr[max1][max2];
+  for (int i = 0; i < max1 + 1; i++) {
+    delete[] ptr[i];
+    ptr[i] = NULL;
+  }
+  delete[] ptr;
+  ptr = NULL;
+  return dis;
+}
+}//end of namespace OB
