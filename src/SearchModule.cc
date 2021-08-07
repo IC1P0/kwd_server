@@ -36,9 +36,15 @@ SearchModule::~SearchModule() {
 }
 
 bool operator>(const SearchModule::SearchResult &lhs, const SearchModule::SearchResult &rhs) {
-  return (lhs.min_edit_dis*4 + (10000 - lhs.occur_times*0.001))
-         > (rhs.min_edit_dis*4 + (10000 - rhs.occur_times*0.001));
-  /* return lhs.min_edit_dis > rhs.min_edit_dis; */
+  if (lhs.min_edit_dis == rhs.min_edit_dis) {
+    if (lhs.occur_times == rhs.occur_times) {
+      return lhs.word > rhs.word;
+    } else {
+      return lhs.occur_times < rhs.occur_times;
+    }
+  } else {
+    return lhs.min_edit_dis > rhs.min_edit_dis;
+  }
 }
 
 SearchModule *SearchModule::GetInstance() {
@@ -121,6 +127,7 @@ SearchRetPair SearchModule::HandleENG(const string &word) {
     int dict_word_cnt = dict_vec[i].second;
     SearchResult ret_tmp;
     ret_tmp.min_edit_dis = MinEdit(word, dict_word);
+    if (ret_tmp.min_edit_dis > 3) continue;
     ret_tmp.occur_times = dict_word_cnt;
     ret_tmp.word = dict_word;
     ret_que.push(ret_tmp);
@@ -156,6 +163,7 @@ SearchRetPair SearchModule::HandleCH(const string &word) {
     int dict_word_cnt = dict_vec[i].second;
     SearchResult ret_tmp;
     ret_tmp.min_edit_dis = MinEdit(word, dict_word);
+    if (ret_tmp.min_edit_dis/3 > 3) continue;
     ret_tmp.occur_times = dict_word_cnt;
     ret_tmp.word = dict_word;
     ret_que.push(ret_tmp);
