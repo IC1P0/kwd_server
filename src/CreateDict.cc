@@ -1,5 +1,5 @@
 #include "../include/CreateDict.hpp"
-#include <sstream>
+#include <fstream>
 
 namespace OB
 {
@@ -36,6 +36,11 @@ void DictCreator::Init() {
 }
 
 void DictCreator::CreateDict() {
+  ifstream ifs_dict(out_put_path_);
+  if (ifs_dict.good()) {
+    ifs_dict.close();
+    return;
+  }
   Init();
   HandleText();
   WriteFile();

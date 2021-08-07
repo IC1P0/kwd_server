@@ -5,11 +5,12 @@
 
 namespace OB
 {
-TcpServer::TcpServer(int fd)
+TcpServer::TcpServer(int fd, EventLoop *looper)
     : socket_(fd),
       socket_io_(fd),
       loacal_addr_(get_local_addr()),
       peer_addr_(get_peer_addr()),
+      looper_(looper),
       is_shut_down_(false) {}
 
 int TcpServer::Receive(char *buf, size_t len) {
@@ -20,9 +21,13 @@ int TcpServer::ReceiveLine(char *buf, size_t len) {
   return socket_io_.ReadLine(buf, len);
 }
 
-int TcpServer::Send(char *buf, size_t len) {
-  return socket_io_.Writen(buf, len);
+int TcpServer::Send(const string &msg) {
+  return socket_io_.Writen(msg.c_str(), msg.size());
 }
+
+/* int TcpServer::Send(char *buf, size_t len) { */
+/*   return socket_io_.Writen(buf, len); */
+/* } */
 
 bool TcpServer::IsClose() {
   char buf[1024] = {0};
@@ -62,6 +67,11 @@ InetAddr TcpServer::get_local_addr() {
   int ret = ::getsockname(socket_.get_fd(), (struct sockaddr *)&addr, &len);
   ErrorCheck(-1, ret, "getlocalname");
   return InetAddr(addr);
+}
+
+void TcpServer::SendToPending(const string &msg) {
+  looper_->AddPendingWork(std::bind(&TcpServer::Send, this, msg));
+  looper_->EventWakeUp();
 }
 
 void TcpServer::HandleConnectCallBack() {

@@ -22,7 +22,12 @@ public:
   explicit RefFileCreator(const string &dict_path, 
                           const string &ref_path_);
   void Init();
-
+  vector<pair<string, int>> &get_dict() {
+    return dict_;
+  }
+  unordered_map<string, set<int>> &get_ref() {
+    return ref_;
+  }
 private:
   void SetDict();
   void SetRef();

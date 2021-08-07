@@ -28,7 +28,7 @@ int SocketIO::Readn(char *buf, size_t len) {
   return len-left;
 }
 
-int SocketIO::Writen(char *buf, size_t len) {
+int SocketIO::Writen(const char *buf, size_t len) {
   int ret = 0;
   do {
     ret = ::write(socket_.get_fd(), buf, len);

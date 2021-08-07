@@ -1,8 +1,8 @@
 #ifndef __OB_EVENTLOOP_H__
 #define __OB_EVENTLOOP_H__
 
+#include "mutex_lock.hpp"
 #include "accept.hpp"
-#include "tcp_server.hpp"
 #include <sys/epoll.h>
 #include <memory>
 #include <unordered_map>
@@ -11,8 +11,10 @@
 
 namespace OB
 {
+class TcpServer;
 using TcpConPtr = std::shared_ptr<TcpServer>;
 using TcpFunCallBack = std::function<void(const TcpConPtr&)>;
+using PendingFunc = std::function<void()>;
 
 class EventLoop {
 public:
@@ -28,8 +30,13 @@ public:
   void SetCloseCallBack(TcpFunCallBack &&cb) {
     on_close_ = std::move(cb);
   }
+  void ReadEventFD();
+  void EventWakeUp();
+  void AddPendingWork(const PendingFunc &fun);
+  void DoPendingWork();
 
 private:
+  int EventFdCreate();
   void HandleConnect();
   void HandleClose(int fd);
 
@@ -40,8 +47,11 @@ private:
 
   Acceptor &acceptor_;
   int efd_;
+  int event_fd_;
   bool is_looping_;
+  MutexLock pending_list_lock_;
   std::vector<struct epoll_event> event_list_;
+  std::vector<PendingFunc> pending_list_;
   std::unordered_map<int, std::shared_ptr<TcpServer>> conn_list_;
   TcpFunCallBack on_connected_;
   TcpFunCallBack on_message_;

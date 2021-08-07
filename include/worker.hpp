@@ -16,7 +16,13 @@ public:
       auto task = thread_pool_.GetTask();
       std::cout << "THREAD " << thread_name
                 << " DOING JOB" << std::endl;
-      task->Process();
+      if (true) {
+        //can't find in cache;
+        task->Process();
+      } else {
+        //find in cache;
+        task->UpdateMsg("result");
+      }
     }
   }
 

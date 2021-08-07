@@ -10,7 +10,7 @@ class SocketIO {
 public:
   explicit SocketIO(int fd);
   int Readn(char *buf, size_t leng);
-  int Writen(char *buf, size_t leng);
+  int Writen(const char *buf, size_t leng);
   int ReadLine(char *buf, size_t len);
 
 private:
