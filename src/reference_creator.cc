@@ -1,4 +1,4 @@
-#include "../include/ReferenceCreator.hpp"
+#include "../include/reference_creator.hpp"
 #include <sstream>
 
 namespace OB

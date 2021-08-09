@@ -10,7 +10,10 @@ using CallBackFunc = std::function<void()>;
 
 class Timer {
 public:
-  Timer(time_t init_time, time_t inter_time, const CallBackFunc &func);
+  Timer(time_t init_time,
+        time_t inter_time,
+        const CallBackFunc &func,
+        int poll_wait_time);
   ~Timer();
   void Start();
   void Stop();
@@ -23,6 +26,7 @@ private:
   int timer_fd_;
   time_t init_time_;
   time_t inter_time_;
+  int poll_wait_time_;
   bool is_stop_;
   CallBackFunc func_;
 };

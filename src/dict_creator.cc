@@ -1,4 +1,4 @@
-#include "../include/CreateDict.hpp"
+#include "../include/dict_creator.hpp"
 #include <fstream>
 
 namespace OB

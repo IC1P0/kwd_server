@@ -2,7 +2,7 @@
 #define __OB_TASK_H__
 
 #include "tcp_server.hpp"
-#include "SearchModule.hpp"
+#include "search_module.hpp"
 #include "json/json.h"
 #include <string>
 #include <iostream>

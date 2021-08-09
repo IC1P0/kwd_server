@@ -22,12 +22,12 @@ public:
       SearchRetPair ret_pair = cache_->SearchCache(task->get_msg());
       if ("" == ret_pair.first) {
         //can't find in cache;
-        printf("Cant find in cache\n");
+        printf("=== Cant find in cache ===\n");
         SearchRetPair ret_pair = task->CallSearchModule();
         cache_->InsertCache(ret_pair);
       } else {
         //find in cache;
-        printf("Found in cache\n");
+        printf("=== Found in cache ===\n");
         task->FoundInCache(ret_pair);
       }
       delete task;

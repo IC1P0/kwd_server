@@ -86,16 +86,14 @@ void Cache::LRU(const SearchRetPair &ret_pair,
 }
 
 void Cache::UpdateCache() {
-  cout << "Time To Update Cache" << endl;
+  cout << endl << "=== Time To Update Cache ===" << endl;
   do {
     update_ = true;
   } while (is_reading_);
-  cout << "cache_list_size: " << cache_list.size() << endl;
   for (size_t i = 1; i < cache_list.size(); ++i) {
     cache_list[i]->WriteToFirstCache();
     cache_list[i]->new_search_list_.clear();
   }
-  cout << "sizeof 0: " << cache_list[0]->cache_LRU_list.size() << endl;
   for (size_t i = 1; i < cache_list.size(); ++i) {
     cache_list[i]->ReadFromFirstCache();
   }
@@ -111,7 +109,6 @@ void Cache::UpdateCache() {
   if (!ofs.good()) {
     perror("ofs.open(): ");
   } else {
-    cout << cache_nonupdate_.size() << endl;
     for (auto ret_pair : cache_nonupdate_) {
       ofs << ret_pair.first << " ";
       for (auto word : ret_pair.second) {
@@ -120,12 +117,12 @@ void Cache::UpdateCache() {
       ofs << endl;
     }
   }
-  cout << "Update Cache Complete" << endl;
+  cout << "=== Update Cache Complete, Cache now has " << cache_LRU_list.size()
+       << " records ===" << endl << endl;
   ofs.close();
 }
 
 void Cache::WriteToFirstCache() {
-  cout << "new_search_list_size = " << new_search_list_.size() << endl;
   for (SearchRetPair new_pair : new_search_list_) {
     string new_word = new_pair.first;
     auto main_cache = cache_list[0];

@@ -1,0 +1,20 @@
+{
+  "FILE_PATH" : 
+  {
+      "TEXT_TO_HANDLE" : "../data/",
+      "STOP_WORDS_LIST" : "../dict/stop_words_list.utf8",
+      "HANDLED_DICT" : "../HandledText/dict",
+      "HANDLED_REF" : "../HandledText/ref",
+      "CACHE_FILE" : "../HandledText/cache"
+  },
+  "SERVER_IPV4" : "127.0.0.1",
+  "SERVER_PORT" : 6688,
+  "SERVER_THREADS_NUM" : 4,
+  "TASK_QUE_NUM" : 10,
+  "CACHE_TIMER_INIT_TIME" : 60,
+  "CACHE_TIMER_INTER_TIME" : 20,
+  "CACHE_ELEMENTS_SIZE" : 100,
+  "SEARCH_RET_LIST_SIZE" : 5,
+  "EVENT_LOOP_WAIT_TIME" : 10000,
+  "TIMER_POLL_WAIT_TIME" : 11000
+}

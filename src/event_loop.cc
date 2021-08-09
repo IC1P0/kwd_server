@@ -107,7 +107,6 @@ void EventLoop::EpollWait() {
   } else if (-1 == ready_num) {
     perror("epoll_wait: ");
   } else if (0 == ready_num) {
-    printf("Epoll Wait Time Out\n");
   } else {
     if (ready_num == event_list_.size()) {
       event_list_.resize(event_list_.size() * 2);

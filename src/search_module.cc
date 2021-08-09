@@ -1,6 +1,7 @@
-#include "../include/SearchModule.hpp"
-#include "../include/CreateDict.hpp"
-#include "../include/ReferenceCreator.hpp"
+#include "../include/search_module.hpp"
+#include "../include/dict_creator.hpp"
+#include "../include/reference_creator.hpp"
+#include "../include/json/json.h"
 #include <queue>
 #include <fstream>
 #include <sstream>
@@ -63,48 +64,45 @@ void SearchModule::Destroy() {
 
 SearchRetPair SearchModule::SearchWord(const string &word) {
   if (IsEnglish(word)) {
-    printf("Seaching English word\n");
     string word_lower(word);
     for (auto &i : word_lower) {
       if (::isupper(i)) i += 32;
     }
     return HandleENG(word_lower);
   } else {
-    printf("Seaching Chinese word\n");
     return HandleCH(word);
   }
 }
 
 void SearchModule::Init() {
-  ReadConf();
-  if (ConfFound("SEARCH_WORD_LIST_SIZE")) search_word_list_size_ = 
-    atoi(conf_["SEARCH_WORD_LIST_SIZE"].c_str());
-  if (ConfFound("TEXT_TO_HANDLE")) text_to_handle_path_ = conf_["TEXT_TO_HANDLE"];
-  if (ConfFound("DICT")) text_to_handle_path_ = conf_["DICT"];
-  if (ConfFound("STOP_WORDS")) text_to_handle_path_ = conf_["STOP_WORDS"];
-  if (ConfFound("REF")) text_to_handle_path_ = conf_["REF"];
+  Json::Value root;
+  string CONF_PATH("../config.json");
+  std::ifstream ifs(CONF_PATH);
+
+  Json::CharReaderBuilder builder;
+  builder["collectComments"] = true;
+  JSONCPP_STRING errs;
+  if (!parseFromStream(builder, ifs, &root, &errs)) {
+    std::cout << errs << std::endl;
+    return;
+  }
+  Json::Value file_path = root["FILE_PATH"];
+  if ("" != file_path["TEXT_TO_HANDLE"].asString())
+    text_to_handle_path_ = file_path["TEXT_TO_HANDLE"].asString();
+  if ("" != file_path["STOP_WORDS_LIST"].asString())
+    stop_words_list_path_ = file_path["STOP_WORDS_LIST"].asString();
+  if ("" != file_path["HANDLED_DICT"].asString())
+    dict_path_ = file_path["HANDLED_DICT"].asString();
+  if ("" != file_path["HANDLED_REF"].asString())
+    ref_path_ = file_path["HANDLED_REF"].asString();
+  ifs.close();
+
   dict_creator_ = new DictCreator(text_to_handle_path_,
                                   dict_path_,
                                   stop_words_list_path_);
   ref_creator_ = new RefFileCreator(dict_path_, ref_path_);
   dict_creator_->CreateDict();
   ref_creator_->Init();
-}
-
-void SearchModule::ReadConf() {
-  ifstream ifs("../conf");
-  if (!ifs.good()) {
-    perror("conf_ifs: ");
-  }
-  string line;
-  while (getline(ifs, line)) {
-    istringstream iss(line);
-    string conf_option;
-    string path;
-    iss >> conf_option >> path;
-    conf_[conf_option] = path;
-  }
-  ifs.close();
 }
 
 SearchRetPair SearchModule::HandleENG(const string &word) {

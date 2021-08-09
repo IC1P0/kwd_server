@@ -5,10 +5,14 @@
 
 namespace OB
 {
-Timer::Timer(time_t init_time, time_t inter_time, const CallBackFunc &func)
+Timer::Timer(time_t init_time,
+             time_t inter_time,
+             const CallBackFunc &func,
+             int poll_wait_time)
     : timer_fd_(CreateTimer()),
       init_time_(init_time),
       inter_time_(inter_time),
+      poll_wait_time_(poll_wait_time),
       is_stop_(false),
       func_(func) {}
 
@@ -24,14 +28,13 @@ void Timer::Start() {
   time_poll.events = POLLIN;
   SetTimer(init_time_, inter_time_);
   while (!is_stop_) {
-    int ready_num = poll(&time_poll, 1, 5000);
+    int ready_num = poll(&time_poll, 1, poll_wait_time_);
     if (-1 == ready_num && errno == EINTR) {
       continue;
     } else if (-1 == ready_num) {
       perror("poll: ");
       return;
     } else if (0 == ready_num) {
-      printf("WAIT TIME OUT\n");
     } else {
       if (time_poll.revents & POLLIN) {
         ReadFD();

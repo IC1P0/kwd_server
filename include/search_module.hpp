@@ -39,10 +39,6 @@ private:
   ~SearchModule();
   static void Destroy();
   void Init();
-  void ReadConf();
-  bool ConfFound(const string &exp) {
-    return (conf_.end() != conf_.find(exp));
-  }
   bool IsEnglish(const string &word) {
     return !(word[0] >> 7);
   }
@@ -68,7 +64,6 @@ private:
   string dict_path_;
   string stop_words_list_path_;
   string ref_path_;
-  unordered_map<string, string> conf_;
   DictCreator *dict_creator_;
   RefFileCreator *ref_creator_;
 };
