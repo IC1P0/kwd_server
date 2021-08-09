@@ -3,12 +3,14 @@
 
 #include "thread.hpp"
 #include "task_que.hpp"
+#include "cache.hpp"
 
 #include <vector>
 #include <memory>
 
 namespace OB
 {
+class CacheWithTimer;
 using Elemtype = Task *;
 
 extern __thread const char *thread_name;
@@ -27,6 +29,7 @@ public:
 
 private:
   std::vector<std::unique_ptr<Thread>> thread_que_;
+  std::unique_ptr<CacheWithTimer> cache_with_timer_;
   size_t que_size_;
   TaskQue que_;
   size_t thread_num_;

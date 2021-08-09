@@ -22,7 +22,7 @@ int TcpServer::ReceiveLine(char *buf, size_t len) {
 }
 
 int TcpServer::Send(const string &msg) {
-  return socket_io_.Writen(msg.c_str(), msg.size());
+  return socket_io_.Writen(msg.c_str());
 }
 
 /* int TcpServer::Send(char *buf, size_t len) { */
