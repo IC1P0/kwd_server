@@ -40,6 +40,9 @@ void Cache::Init() {
       SearchRetPair ret_pair(search_word, search_ret_vec);
       LRU(ret_pair, cache_LRU_list.end());
     }
+    for (auto word_pair : cache_LRU_list) {
+      cache_nonupdate_[word_pair.first] = word_pair.second;
+    }
   }
   ifs.close();
 }
@@ -87,10 +90,12 @@ void Cache::LRU(const SearchRetPair &ret_pair,
 
 void Cache::UpdateCache() {
   cout << endl << "=== Time To Update Cache ===" << endl;
-  do {
-    update_ = true;
-  } while (is_reading_);
   for (size_t i = 1; i < cache_list.size(); ++i) {
+    cache_list[i]->update_ = true;
+  }
+  while (cache_list[0]->is_reading_) ;
+  for (size_t i = 1; i < cache_list.size(); ++i) {
+    while (cache_list[i]->is_reading_) ;
     cache_list[i]->WriteToFirstCache();
     cache_list[i]->new_search_list_.clear();
   }
@@ -99,10 +104,12 @@ void Cache::UpdateCache() {
   }
   update_ = false;
   {
-    MutexGuard auto_unlock(lock_for_update);
-    cache_nonupdate_.clear();
-    for (SearchRetPair i : cache_LRU_list) {
-      cache_nonupdate_[i.first] = i.second;
+    for (size_t i = 0; i < cache_list.size(); ++i) {
+      MutexGuard auto_unlock(cache_list[i]->lock_for_update);
+      Cache *cur_cache = cache_list[i];
+      for (SearchRetPair word_pair : cur_cache->cache_LRU_list) {
+        cur_cache->cache_nonupdate_[word_pair.first] = word_pair.second;
+      }
     }
   }
   ofstream ofs(cache_file_path_);
@@ -117,8 +124,8 @@ void Cache::UpdateCache() {
       ofs << endl;
     }
   }
-  cout << "=== Update Cache Complete, Cache now has " << cache_LRU_list.size()
-       << " records ===" << endl << endl;
+  cout << "=== Cache Updated, " << cache_LRU_list.size()
+       << " Records Included ===" << endl << endl;
   ofs.close();
 }
 
