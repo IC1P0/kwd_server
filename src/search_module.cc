@@ -86,6 +86,8 @@ void SearchModule::Init() {
     std::cout << errs << std::endl;
     return;
   }
+  if (!root["SEARCH_RET_LIST_SIZE"].isNull())
+    search_word_list_size_ = root["SEARCH_RET_LIST_SIZE"].asInt();
   Json::Value file_path = root["FILE_PATH"];
   if ("" != file_path["TEXT_TO_HANDLE"].asString())
     text_to_handle_path_ = file_path["TEXT_TO_HANDLE"].asString();
