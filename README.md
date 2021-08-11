@@ -6,3 +6,5 @@ and multiple work threads.
 
 Working threads will process messages come from clients and Reactor will return 
 possible results back to clients.
+
+`To run test, execute <make> command in 'test' directory.`
