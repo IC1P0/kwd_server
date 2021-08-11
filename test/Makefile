@@ -19,19 +19,19 @@ bin :
 HandledText :
 	mkdir HandledText
 
-server : test_server $(OBJ)
+server : test_server.o $(OBJ)
 	$(CXX) -o $@ bin/*.o $(LIBS)
 
-test_server :
-	cp test_server.cc ../src/.
+test_server.o :
+	$(CXX) -o bin/$@ -c test_server.cc
 
 $(OBJ) : $(CONF) $(SRC)
 	$(CXX) -c $(patsubst %.o, ../src/%.cc, $@) -o bin/$@
 
-client : client.o bin/socket.o bin/socket_IO.o bin/inet_addr.o
+client : bin/client.o bin/socket.o bin/socket_IO.o bin/inet_addr.o
 	$(CXX) -o $@ $^ -L $(LIB_PATH) -ljsoncpp
 
-client.o : client.cc
+bin/client.o : client.cc
 	$(CXX) -o $@ -c $<
 
 .PHONY : rebuild
@@ -39,8 +39,7 @@ rebuild : clean all_file
 
 .PHONY : clean clean_bin clean_text
 clean : clean_bin clean_text
-	rm server client *.o;
-	rm ../src/test_server.cc
+	rm server client;
 clean_bin :
 	rm -rf bin
 clean_text :
