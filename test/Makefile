@@ -20,7 +20,7 @@ HandledText :
 	mkdir HandledText
 
 server : test_server $(OBJ)
-	$(CXX) -o server bin/*.o $(LIBS)
+	$(CXX) -o $@ bin/*.o $(LIBS)
 
 test_server :
 	cp test_server.cc ../src/.
