@@ -41,6 +41,7 @@ void DictCreator::CreateDict() {
     ifs_dict.close();
     return;
   }
+  cout << "Creating Dict" << endl;
   Init();
   HandleText();
   WriteFile();

@@ -1,34 +1,47 @@
 #Files path define
 vpath %.hpp ../include
 vpath %.cc ../src
-vpath %.o bin
-vpath %.a ../libs/
+vpath %.o bin/
+vpath %.a ../libs
 
-LIB_PATH := ../libs/
-SRC := $(wildcard *.cc)
-OBJ := $(patsubst %.cc,%.o, $(SRC))
+CONF = ../config.json
+LIB_PATH := ../libs
+LIBS := -lpthread -L $(LIB_PATH) -ljsoncpp
+SRC := $(wildcard ../src/*.cc)
+OBJ := $(patsubst ../src/%.cc, %.o, $(SRC))
+CXX := g++
 
-all_file :env server client
+all_file : env server client
 
-env : bin HandleText
+env : bin HandledText
 bin :
 	mkdir bin
-HandleText :
-	mkdir HandleText
+HandledText :
+	mkdir HandledText
 
-server : $(OBJ)
-	g++ -o $@ $^ -L $(LIB_PATH) -lpthread -ljsoncpp
+server : test_server $(OBJ)
+	$(CXX) -o server bin/*.o $(LIBS)
 
-client : client.o socket.o socket_IO.o inet_addr.o
-	g++ -o $@ $^ -L $(LIB_PATH) -ljsoncpp
+test_server :
+	cp test_server.cc ../src/.
 
-$(OBJ) : $(SRC)
-	g++ -o bin/$@ -c $(patsubst %.o, %.cc, $@)
+$(OBJ) : $(CONF) $(SRC)
+	$(CXX) -c $(patsubst %.o, ../src/%.cc, $@) -o bin/$@
+
+client : client.o bin/socket.o bin/socket_IO.o bin/inet_addr.o
+	$(CXX) -o $@ $^ -L $(LIB_PATH) -ljsoncpp
+
+client.o : client.cc
+	$(CXX) -o $@ -c $<
+
+.PHONY : rebuild
+rebuild : clean all_file
 
 .PHONY : clean clean_bin clean_text
 clean : clean_bin clean_text
-	rm server client
+	rm server client *.o;
+	rm ../src/test_server.cc
 clean_bin :
 	rm -rf bin
 clean_text :
-	rm -rf HandleText
+	rm -rf HandledText

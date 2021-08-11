@@ -11,6 +11,7 @@ using std::endl;
 using std::ifstream;
 using std::ofstream;
 using std::istringstream;
+vector<Cache *> Cache::cache_list;
 
 Cache::Cache(uint32_t cache_size, const string &cache_file_path)
     : update_(false),

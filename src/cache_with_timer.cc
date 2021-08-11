@@ -10,8 +10,6 @@ namespace OB
 {
 using std::bind;
 
-vector<Cache*> Cache::cache_list;
-
 CacheWithTimer::CacheWithTimer(int cache_vec_size)
   : cache_vec_size_(cache_vec_size),
     cache_timer_(nullptr),
