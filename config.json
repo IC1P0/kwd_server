@@ -3,9 +3,9 @@
   {
       "TEXT_TO_HANDLE" : "../data/",
       "STOP_WORDS_LIST" : "../dict/stop_words_list.utf8",
-      "HANDLED_DICT" : "../test/HandledText/dict",
-      "HANDLED_REF" : "../test/HandledText/ref",
-      "CACHE_FILE" : "../test/HandledText/cache"
+      "HANDLED_DICT" : "./HandledText/dict",
+      "HANDLED_REF" : "./HandledText/ref",
+      "CACHE_FILE" : "./HandledText/cache"
   },
   "SERVER_IPV4" : "127.0.0.1",
   "SERVER_PORT" : 6688,
